@@ -1,6 +1,5 @@
--- 精简俄亥俄州UI
+-- 悬浮球俄亥俄州
 local function Ohio()
-    -- 基础
     if not game:IsLoaded() then game.Loaded:Wait() end
     
     local Players = game:GetService("Players")
@@ -8,82 +7,127 @@ local function Ohio()
     local RunService = game:GetService("RunService")
     local Workspace = game:GetService("Workspace")
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local UserInputService = game:GetService("UserInputService")
+    local TweenService = game:GetService("TweenService")
     local lp = Players.LocalPlayer
     
-    -- UI
+    -- 悬浮球
     local gui = Instance.new("ScreenGui")
     gui.Parent = CoreGui
+    gui.ResetOnSpawn = false
     
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 400)
-    frame.Position = UDim2.new(0.5, -150, 0.5, -200)
-    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    frame.Active = true
-    frame.Draggable = true
-    frame.Parent = gui
+    local ball = Instance.new("TextButton")
+    ball.Size = UDim2.new(0, 50, 0, 50)
+    ball.Position = UDim2.new(0, 10, 0.5, -25)
+    ball.BackgroundColor3 = Color3.fromRGB(60, 60, 200)
+    ball.Text = "O"
+    ball.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ball.TextSize = 24
+    ball.Font = Enum.Font.GothamBold
+    ball.Parent = gui
     
-    Instance.new("UICorner").Parent = frame
+    Instance.new("UICorner").CornerRadius = UDim.new(1, 0)
+    Instance.new("UICorner", ball)
     
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 0, 30)
-    title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    title.Text = "Ohio"
-    title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    title.TextSize = 16
-    title.Font = Enum.Font.GothamBold
-    title.Parent = frame
+    -- 菜单
+    local menu = Instance.new("Frame")
+    menu.Size = UDim2.new(0, 180, 0, 200)
+    menu.Position = UDim2.new(0, 70, 0, 0)
+    menu.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    menu.Visible = false
+    menu.Parent = ball
     
-    local close = Instance.new("TextButton")
-    close.Size = UDim2.new(0, 30, 0, 30)
-    close.Position = UDim2.new(1, -30, 0, 0)
-    close.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    close.Text = "X"
-    close.TextColor3 = Color3.fromRGB(255, 255, 255)
-    close.TextSize = 16
-    close.Font = Enum.Font.GothamBold
-    close.Parent = frame
-    close.MouseButton1Click:Connect(function() gui:Destroy() end)
+    Instance.new("UICorner", menu)
     
-    local scroll = Instance.new("ScrollingFrame")
-    scroll.Size = UDim2.new(1, -10, 1, -40)
-    scroll.Position = UDim2.new(0, 5, 0, 35)
-    scroll.BackgroundTransparency = 1
-    scroll.ScrollBarThickness = 5
-    scroll.Parent = frame
+    local list = Instance.new("UIListLayout")
+    list.Padding = UDim.new(0, 2)
+    list.Parent = menu
     
-    local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 3)
-    layout.Parent = scroll
-    
-    -- 开关创建
-    local function toggle(text, def, cb)
+    local function createBtn(text, cb)
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, 0, 0, 30)
-        btn.BackgroundColor3 = def and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(80, 80, 80)
-        btn.Text = text .. (def and " [开]" or " [关]")
+        btn.Size = UDim2.new(1, -4, 0, 25)
+        btn.Position = UDim2.new(0, 2, 0, 2)
+        btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        btn.Text = text
         btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        btn.TextSize = 13
+        btn.TextSize = 12
         btn.Font = Enum.Font.Gotham
-        btn.Parent = scroll
+        btn.Parent = menu
+        btn.MouseButton1Click:Connect(cb)
+        return btn
+    end
+    
+    local function createToggle(text, def, cb)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -4, 0, 25)
+        btn.Position = UDim2.new(0, 2, 0, 2)
+        btn.BackgroundColor3 = def and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(80, 80, 80)
+        btn.Text = text
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.TextSize = 12
+        btn.Font = Enum.Font.Gotham
+        btn.Parent = menu
         local state = def
         btn.MouseButton1Click:Connect(function()
             state = not state
-            btn.BackgroundColor3 = state and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(80, 80, 80)
-            btn.Text = text .. (state and " [开]" or " [关]")
+            btn.BackgroundColor3 = state and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(80, 80, 80)
             cb(state)
         end)
-        return function() return state end
+        return btn
     end
     
     -- 配置
-    local config = {ATM=true, Bank=false, Vest=true, Health=true, Doll=true}
+    local config = {atm=true, vest=true, health=true, doll=true}
     
-    -- 开关
-    toggle("自动ATM", config.ATM, function(s) config.ATM = s end)
-    toggle("自动银行", config.Bank, function(s) config.Bank = s end)
-    toggle("自动护甲", config.Vest, function(s) config.Vest = s end)
-    toggle("自动回血", config.Health, function(s) config.Health = s end)
-    toggle("反布娃娃", config.Doll, function(s) config.Doll = s end)
+    -- 菜单按钮
+    createBtn("关闭", function() gui:Destroy() end)
+    createToggle("ATM", config.atm, function(s) config.atm = s end)
+    createToggle("护甲", config.vest, function(s) config.vest = s end)
+    createToggle("回血", config.health, function(s) config.health = s end)
+    createToggle("反布娃娃", config.doll, function(s) config.doll = s end)
+    
+    -- 点击球切换菜单
+    local menuOpen = false
+    ball.MouseButton1Click:Connect(function()
+        menuOpen = not menuOpen
+        menu.Visible = menuOpen
+        menu.Size = UDim2.new(0, 180, 0, 200)
+    end)
+    
+    -- 拖拽
+    local drag, dragInput, dragStart, startPos
+    
+    ball.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            drag = true
+            dragStart = input.Position
+            startPos = ball.Position
+        end
+    end)
+    
+    ball.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and drag then
+            local delta = input.Position - dragStart
+            ball.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            drag = false
+        end
+    end)
     
     -- 功能
     local devv = require(ReplicatedStorage:WaitForChild("devv"))
@@ -104,7 +148,7 @@ local function Ohio()
         if not root then return end
         
         -- ATM
-        if config.ATM then
+        if config.atm then
             local atms = Workspace:FindFirstChild("ATMs")
             if atms then
                 for _, v in pairs(atms:GetChildren()) do
@@ -120,7 +164,7 @@ local function Ohio()
         end
         
         -- 护甲
-        if config.Vest then
+        if config.vest then
             local armor = lp:GetAttribute('armor')
             if armor == nil or armor <= 0 then
                 for _, v in pairs(Inventory.items) do
@@ -135,7 +179,7 @@ local function Ohio()
         end
         
         -- 回血
-        if config.Health then
+        if config.health then
             local hum = char:FindFirstChild("Humanoid")
             if hum and hum.Health > 0 and hum.Health < hum.MaxHealth then
                 for _, v in pairs(Inventory.items) do
@@ -150,7 +194,7 @@ local function Ohio()
         end
         
         -- 反布娃娃
-        if config.Doll then
+        if config.doll then
             if lp:GetAttribute("isRagdoll") then
                 Signal.FireServer("setRagdoll", false)
                 lp:SetAttribute("isRagdoll", false)
@@ -181,11 +225,6 @@ local function Ohio()
                 end
             end
         end
-    end)
-    
-    -- 更新滚动
-    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
     end)
 end
 
