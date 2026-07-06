@@ -1,6 +1,6 @@
--- 俄亥俄州 - 基础可用版
-local function OhioBase()
-    if not game:IsLoaded() then game.Loaded:Wait() end
+-- 俄亥俄州 - WinUI风格
+local function OhioWinUI()
+    repeat task.wait() until game:IsLoaded()
     
     local Players = game:GetService("Players")
     local CoreGui = game:GetService("CoreGui")
@@ -10,204 +10,243 @@ local function OhioBase()
     local UserInputService = game:GetService("UserInputService")
     local lp = Players.LocalPlayer
     
-    print("开始加载俄亥俄州...")
+    print("开始加载俄亥俄州 WinUI...")
     
-    -- 检查必要模块
-    local devv
-    local success, err = pcall(function()
-        devv = require(ReplicatedStorage:WaitForChild("devv"))
-    end)
-    
-    if not success then
-        print("❌ 找不到 devv 模块: " .. err)
-        return
-    end
-    
-    print("✅ 找到 devv 模块")
-    
-    -- 获取必要函数
+    -- 获取模块
+    local devv = require(ReplicatedStorage:WaitForChild("devv"))
     local Signal = devv.client.Helpers.remotes.Signal
     local FireServer = Signal.FireServer
     local InvokeServer = Signal.InvokeServer
     local Inventory = devv.load("v3item").inventory
     local items = Inventory.items
     
-    print("✅ 核心函数加载完成")
+    print("模块加载完成")
     
     -- 配置
-    local config = {
+    local cfg = {
         atm = true,
         vest = true,
         health = true,
-        doll = true
+        doll = true,
+        bank = false,
+        kz = false,
+        bx = false,
+        zbd = false
     }
     
     -- 创建GUI
     local gui = Instance.new("ScreenGui")
-    gui.Name = "OhioBase"
+    gui.Name = "OhioWinUI"
     gui.Parent = CoreGui
     gui.ResetOnSpawn = false
     
-    -- 悬浮球
-    local ball = Instance.new("TextButton")
-    ball.Size = UDim2.new(0, 50, 0, 50)
-    ball.Position = UDim2.new(0, 10, 0.5, -25)
-    ball.BackgroundColor3 = Color3.fromRGB(60, 60, 200)
-    ball.Text = "O"
-    ball.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ball.TextSize = 24
-    ball.Font = Enum.Font.GothamBold
-    ball.Parent = gui
-    ball.ZIndex = 10
+    -- ====== WinUI风格窗口 ======
+    local window = Instance.new("Frame")
+    window.Size = UDim2.new(0, 350, 0, 450)
+    window.Position = UDim2.new(0.5, -175, 0.5, -225)
+    window.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+    window.Parent = gui
+    window.ZIndex = 10
+    window.BorderSizePixel = 1
+    window.BorderColor3 = Color3.fromRGB(180, 180, 180)
     
-    local ballCorner = Instance.new("UICorner")
-    ballCorner.CornerRadius = UDim.new(1, 0)
-    ballCorner.Parent = ball
+    -- 窗口阴影
+    local shadow = Instance.new("Frame")
+    shadow.Size = UDim2.new(1, 10, 1, 10)
+    shadow.Position = UDim2.new(0, -5, 0, -5)
+    shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.BackgroundTransparency = 0.3
+    shadow.ZIndex = 0
+    shadow.Parent = window
     
-    -- 主窗口
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 200, 0, 250)
-    mainFrame.Position = UDim2.new(0.5, -100, 0.5, -125)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    mainFrame.Visible = false
-    mainFrame.Parent = gui
-    mainFrame.ZIndex = 20
-    
-    local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 8)
-    mainCorner.Parent = mainFrame
+    -- 标题栏
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 32)
+    titleBar.BackgroundColor3 = Color3.fromRGB(50, 120, 200)
+    titleBar.Parent = window
+    titleBar.ZIndex = 11
     
     -- 标题
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, 0, 0, 30)
-    title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    title.Text = "俄亥俄州"
-    title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    title.TextSize = 14
-    title.Font = Enum.Font.GothamBold
-    title.Parent = mainFrame
+    local titleText = Instance.new("TextLabel")
+    titleText.Size = UDim2.new(1, -80, 1, 0)
+    titleText.Position = UDim2.new(0, 10, 0, 0)
+    titleText.Text = "俄亥俄州"
+    titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleText.TextSize = 14
+    titleText.Font = Enum.Font.GothamBold
+    titleText.BackgroundTransparency = 1
+    titleText.TextXAlignment = Enum.TextXAlignment.Left
+    titleText.Parent = titleBar
+    titleText.ZIndex = 12
     
     -- 关闭按钮
-    local close = Instance.new("TextButton")
-    close.Size = UDim2.new(0, 25, 0, 25)
-    close.Position = UDim2.new(1, -30, 0.5, -12.5)
-    close.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    close.Text = "X"
-    close.TextColor3 = Color3.fromRGB(255, 255, 255)
-    close.TextSize = 14
-    close.Font = Enum.Font.GothamBold
-    close.Parent = title
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -30, 0.5, -15)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    closeBtn.Text = "✕"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeBtn.TextSize = 16
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.Parent = titleBar
+    closeBtn.ZIndex = 12
+    closeBtn.BorderSizePixel = 0
+    closeBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
     
-    close.MouseButton1Click:Connect(function()
-        mainFrame.Visible = false
+    -- 最小化按钮
+    local minBtn = Instance.new("TextButton")
+    minBtn.Size = UDim2.new(0, 30, 0, 30)
+    minBtn.Position = UDim2.new(1, -60, 0.5, -15)
+    minBtn.BackgroundColor3 = Color3.fromRGB(50, 120, 200)
+    minBtn.Text = "─"
+    minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minBtn.TextSize = 16
+    minBtn.Font = Enum.Font.GothamBold
+    minBtn.Parent = titleBar
+    minBtn.ZIndex = 12
+    minBtn.BorderSizePixel = 0
+    
+    local minimized = false
+    local origSize = window.Size
+    minBtn.MouseButton1Click:Connect(function()
+        minimized = not minimized
+        if minimized then
+            window.Size = UDim2.new(0, 350, 0, 32)
+        else
+            window.Size = UDim2.new(0, 350, 0, 450)
+        end
     end)
     
     -- 内容区域
-    local content = Instance.new("Frame")
-    content.Size = UDim2.new(1, -10, 1, -40)
-    content.Position = UDim2.new(0, 5, 0, 35)
+    local content = Instance.new("ScrollingFrame")
+    content.Size = UDim2.new(1, -10, 1, -42)
+    content.Position = UDim2.new(0, 5, 0, 37)
     content.BackgroundTransparency = 1
-    content.Parent = mainFrame
+    content.ScrollBarThickness = 6
+    content.Parent = window
+    content.ZIndex = 10
     
     local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 3)
+    layout.Padding = UDim.new(0, 4)
     layout.Parent = content
     
-    -- 创建开关
-    local function makeToggle(text, def, cb)
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, 0, 0, 28)
-        btn.BackgroundColor3 = def and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(80, 80, 80)
-        btn.Text = text .. (def and " [开]" or " [关]")
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        btn.TextSize = 13
-        btn.Font = Enum.Font.Gotham
-        btn.Parent = content
+    -- ====== WinUI风格开关 ======
+    local function WinToggle(text, def, cb)
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(1, 0, 0, 36)
+        frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        frame.Parent = content
+        frame.ZIndex = 10
+        frame.BorderSizePixel = 1
+        frame.BorderColor3 = Color3.fromRGB(220, 220, 220)
         
+        -- 标签
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(0.7, 0, 1, 0)
+        label.Position = UDim2.new(0, 10, 0, 0)
+        label.Text = text
+        label.TextColor3 = Color3.fromRGB(50, 50, 50)
+        label.TextSize = 13
+        label.Font = Enum.Font.Gotham
+        label.BackgroundTransparency = 1
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = frame
+        label.ZIndex = 11
+        
+        -- WinUI风格滑块开关
+        local toggleBg = Instance.new("Frame")
+        toggleBg.Size = UDim2.new(0, 44, 0, 22)
+        toggleBg.Position = UDim2.new(1, -54, 0.5, -11)
+        toggleBg.BackgroundColor3 = def and Color3.fromRGB(50, 180, 50) or Color3.fromRGB(180, 180, 180)
+        toggleBg.Parent = frame
+        toggleBg.ZIndex = 11
+        
+        local toggleCorner = Instance.new("UICorner")
+        toggleCorner.CornerRadius = UDim.new(1, 0)
+        toggleCorner.Parent = toggleBg
+        
+        -- 滑块圆点
+        local dot = Instance.new("Frame")
+        dot.Size = UDim2.new(0, 18, 0, 18)
+        dot.Position = def and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
+        dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        dot.Parent = toggleBg
+        dot.ZIndex = 12
+        
+        local dotCorner = Instance.new("UICorner")
+        dotCorner.CornerRadius = UDim.new(1, 0)
+        dotCorner.Parent = dot
+        
+        -- 点击切换
         local state = def
-        btn.MouseButton1Click:Connect(function()
+        toggleBg.MouseButton1Click:Connect(function()
             state = not state
-            btn.BackgroundColor3 = state and Color3.fromRGB(0, 180, 0) or Color3.fromRGB(80, 80, 80)
-            btn.Text = text .. (state and " [开]" or " [关]")
+            toggleBg.BackgroundColor3 = state and Color3.fromRGB(50, 180, 50) or Color3.fromRGB(180, 180, 180)
+            dot.Position = state and UDim2.new(1, -21, 0.5, -9) or UDim2.new(0, 3, 0.5, -9)
             cb(state)
         end)
     end
     
-    makeToggle("ATM", config.atm, function(s) config.atm = s end)
-    makeToggle("护甲", config.vest, function(s) config.vest = s end)
-    makeToggle("回血", config.health, function(s) config.health = s end)
-    makeToggle("反布娃娃", config.doll, function(s) config.doll = s end)
+    -- ====== 创建分组 ======
+    local function Group(title)
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(1, 0, 0, 30)
+        frame.BackgroundTransparency = 1
+        frame.Parent = content
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.Text = title
+        label.TextColor3 = Color3.fromRGB(80, 80, 80)
+        label.TextSize = 12
+        label.Font = Enum.Font.GothamBold
+        label.BackgroundTransparency = 1
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = frame
+    end
     
-    -- 点击球切换菜单
-    ball.MouseButton1Click:Connect(function()
-        mainFrame.Visible = not mainFrame.Visible
-    end)
+    -- 战斗分组
+    Group("战斗")
+    WinToggle("自动护甲", cfg.vest, function(s) cfg.vest = s end)
+    WinToggle("自动回血", cfg.health, function(s) cfg.health = s end)
+    WinToggle("反布娃娃", cfg.doll, function(s) cfg.doll = s end)
+    WinToggle("自动口罩", cfg.kz, function(s) cfg.kz = s end)
     
-    -- 拖拽球
-    local dragging = false
-    local dragStart = nil
-    local startPos = nil
-    
-    ball.MouseButton1Down:Connect(function()
-        dragging = true
-        dragStart = UserInputService:GetMouseLocation()
-        startPos = ball.Position
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-            local delta = input.Position - dragStart
-            ball.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-    
-    -- 拖拽窗口
-    local dragWin = false
-    local dragWinStart = nil
-    local winStartPos = nil
-    
-    title.MouseButton1Down:Connect(function()
-        dragWin = true
-        dragWinStart = UserInputService:GetMouseLocation()
-        winStartPos = mainFrame.Position
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement and dragWin then
-            local delta = input.Position - dragWinStart
-            mainFrame.Position = UDim2.new(
-                winStartPos.X.Scale,
-                winStartPos.X.Offset + delta.X,
-                winStartPos.Y.Scale,
-                winStartPos.Y.Offset + delta.Y
-            )
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragWin = false
-        end
-    end)
+    -- 抢劫分组
+    Group("抢劫")
+    WinToggle("自动摧毁ATM", cfg.atm, function(s) cfg.atm = s end)
+    WinToggle("自动偷盗银行", cfg.bank, function(s) cfg.bank = s end)
+    WinToggle("自动珠宝店", cfg.zbd, function(s) cfg.zbd = s end)
+    WinToggle("自动开保险", cfg.bx, function(s) cfg.bx = s end)
     
     -- 更新滚动
     layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        content.Size = UDim2.new(1, -10, 0, layout.AbsoluteContentSize.Y + 10)
-        mainFrame.Size = UDim2.new(0, 200, 0, layout.AbsoluteContentSize.Y + 55)
+        content.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
     end)
     
-    print("✅ UI加载完成")
+    -- 窗口拖拽
+    local drag, dragStart, startPos
+    
+    titleBar.MouseButton1Down:Connect(function()
+        drag = true
+        dragStart = UserInputService:GetMouseLocation()
+        startPos = window.Position
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and drag then
+            local delta = input.Position - dragStart
+            window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            drag = false
+        end
+    end)
+    
+    print("WinUI加载完成！")
     
     -- ====== 功能 ======
     local function GetGuid(name)
@@ -217,11 +256,9 @@ local function OhioBase()
         return nil
     end
     
-    print("✅ 功能系统准备就绪")
-    
     -- ATM
     RunService.Heartbeat:Connect(function()
-        if not config.atm then return end
+        if not cfg.atm then return end
         
         local atms = Workspace:FindFirstChild("ATMs")
         if not atms then return end
@@ -244,10 +281,10 @@ local function OhioBase()
     
     -- 护甲
     RunService.Heartbeat:Connect(function()
-        if not config.vest then return end
+        if not cfg.vest then return end
         
         local armor = lp:GetAttribute('armor')
-        if armor == nil or armor <= 0 then
+        if not armor or armor <= 0 then
             for _, v in pairs(items) do
                 if v.subtype == "vest" then
                     FireServer("equip", v.guid)
@@ -261,14 +298,14 @@ local function OhioBase()
     
     -- 回血
     RunService.Heartbeat:Connect(function()
-        if not config.health then return end
+        if not cfg.health then return end
         
         local char = lp.Character
         if not char then return end
         local hum = char:FindFirstChild("Humanoid")
         if hum and hum.Health > 0 and hum.Health < hum.MaxHealth then
             for _, v in pairs(items) do
-                if v.name == 'Bandage' then
+                if v.name == "Bandage" then
                     FireServer("equip", v.guid)
                     FireServer("useConsumable", v.guid)
                     FireServer("removeItem", v.guid)
@@ -280,17 +317,55 @@ local function OhioBase()
     
     -- 反布娃娃
     RunService.Heartbeat:Connect(function()
-        if not config.doll then return end
+        if not cfg.doll then return end
         
         if lp:GetAttribute("isRagdoll") then
             FireServer("setRagdoll", false)
-            local client = devv.load("ClientReplicator")
-            client.Set(lp, "ragdolled", false)
             lp:SetAttribute("isRagdoll", false)
         end
     end)
     
-    -- 自动拾取现金
+    -- 银行
+    local nextThrow = 0
+    RunService.Heartbeat:Connect(function()
+        if not cfg.bank then return end
+        
+        local Robbery = Workspace:FindFirstChild("BankRobbery")
+        if not Robbery then return end
+        
+        local char = lp.Character
+        if not char then return end
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+        
+        local Vault = Robbery:FindFirstChild("VaultDoor")
+        if not Vault then return end
+        
+        local VPos = Vault:IsA("Model") and Vault:GetPivot().Position or Vault.Position
+        local vaultTarget = Vector3.new(1123.70703125, 13.76093578338623, -353.52301025390625)
+        
+        if (VPos - vaultTarget).Magnitude < 0.5 then
+            if tick() < nextThrow then return end
+            nextThrow = tick() + 5
+            
+            root.CFrame = CFrame.new(1123.54749, 8.31286526, -364.052216)
+            
+            local TNTGuid = GetGuid('TNT')
+            if not TNTGuid then
+                InvokeServer("attemptPurchase", "TNT")
+                return
+            end
+            
+            local vaultPos = Vector3.new(1123.70703125, 13.76093578338623, -353.52301025390625)
+            local direction = (vaultPos - root.Position).Unit
+            
+            FireServer("equip", TNTGuid)
+            FireServer("throwItem", TNTGuid, direction, Vector3.new(1124.0853271484, 5.3128666877747, -357.68710327148))
+            FireServer("removeItem", TNTGuid)
+        end
+    end)
+    
+    -- 捡钱
     RunService.Heartbeat:Connect(function()
         local char = lp.Character
         if not char then return end
@@ -315,8 +390,7 @@ local function OhioBase()
         end
     end)
     
-    print("✅ 俄亥俄州已启动！点击 O 球打开菜单")
-    print("功能: ATM自动摧毁 | 自动护甲 | 自动回血 | 反布娃娃")
+    print("俄亥俄州 WinUI 启动完成！")
 end
 
-pcall(OhioBase)
+pcall(OhioWinUI)
